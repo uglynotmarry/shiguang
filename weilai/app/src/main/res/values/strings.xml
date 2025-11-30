@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">时光邮局</string>
+    
+    <!-- 通用 -->
+    <string name="loading">加载中...</string>
+    <string name="error">出错了</string>
+    <string name="retry">重试</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确认</string>
+    <string name="save">保存</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    <string name="back">返回</string>
+    
+    <!-- 登录注册 -->
+    <string name="login">登录</string>
+    <string name="register">注册</string>
+    <string name="email">邮箱</string>
+    <string name="password">密码</string>
+    <string name="nickname">昵称</string>
+    <string name="confirm_password">确认密码</string>
+    <string name="forgot_password">忘记密码？</string>
+    <string name="no_account">还没有账号？</string>
+    <string name="has_account">已有账号？</string>
+    <string name="login_success">登录成功</string>
+    <string name="register_success">注册成功</string>
+    
+    <!-- 主界面 -->
+    <string name="welcome">欢迎来到时光邮局</string>
+    <string name="my_records">我的时光记录</string>
+    <string name="public_timeline">时光广场</string>
+    <string name="subscription">会员中心</string>
+    <string name="settings">设置</string>
+    <string name="logout">退出登录</string>
+    
+    <!-- 记录创建 -->
+    <string name="create_text_record">创建文字记录</string>
+    <string name="create_voice_record">创建语音记录</string>
+    <string name="record_content_hint">记录下这一刻的心情...</string>
+    <string name="emotion_select">选择情绪</string>
+    <string name="make_public">公开分享</string>
+    <string name="emotion_happy">快乐</string>
+    <string name="emotion_touched">感动</string>
+    <string name="emotion_missing">思念</string>
+    <string name="emotion_sentimental">感伤</string>
+    <string name="emotion_grateful">感激</string>
+    <string name="emotion_hopeful">希望</string>
+    
+    <!-- 语音录制 -->
+    <string name="start_recording">开始录音</string>
+    <string name="stop_recording">停止录音</string>
+    <string name="recording_in_progress">正在录音...</string>
+    <string name="analyzing_voice">正在分析语音情感...</string>
+    <string name="recording_too_short">录音时间太短，请重新录制</string>
+    <string name="voice_analysis_complete">语音分析完成</string>
+    
+    <!-- AI分析 -->
+    <string name="emotion_score">情感强度</string>
+    <string name="keywords">关键词</string>
+    <string name="sentiment">情感倾向</string>
+    <string name="summary">内容摘要</string>
+    <string name="positive">积极</string>
+    <string name="negative">消极</string>
+    <string name="neutral">中性</string>
+    
+    <!-- 会员 -->
+    <string name="premium_features">会员特权</string>
+    <string name="upgrade_to_premium">升级会员</string>
+    <string name="premium_text_analysis">高级文本情感分析</string>
+    <string name="premium_voice_analysis">语音多模态AI分析</string>
+    <string name="premium_unlimited_records">无限记录存储</string>
+    <string name="premium_priority_support">优先技术支持</string>
+    <string name="subscription_monthly">月付会员</string>
+    <string name="subscription_yearly">年付会员</string>
+    <string name="price_monthly">¥28/月</string>
+    <string name="price_yearly">¥298/年</string>
+    
+    <!-- 错误信息 -->
+    <string name="network_error">网络连接失败</string>
+    <string name="authentication_error">认证失败</string>
+    <string name="permission_denied">权限被拒绝</string>
+    <string name="recording_error">录音失败</string>
+    <string name="ai_analysis_error">AI分析失败</string>
+    <string name="payment_error">支付失败</string>
+    
+    <!-- 缺失的字符串资源 -->
+    <string name="subscription_center">会员中心</string>
+    <string name="premium_member">会员用户</string>
+    <string name="regular_member">普通用户</string>
+    <string name="premium_expires_soon">会员即将到期</string>
+    <string name="upgrade_to_premium_hint">升级会员享受更多功能</string>
+    <string name="choose_plan">选择套餐</string>
+    <string name="feature_ai_analysis">AI情感分析</string>
+    <string name="feature_unlimited_records">无限记录</string>
+    <string name="feature_priority_support">优先支持</string>
+    <string name="feature_no_ads">无广告</string>
+    <string name="subscribe">订阅</string>
+    <string name="no_records_yet">还没有记录</string>
+    <string name="create_first_record_hint">创建你的第一条时光记录</string>
+    <string name="view_detail">查看详情</string>
+    <string name="recording">录音中</string>
+    <string name="recorded">已录音</string>
+    <string name="tap_to_record">点击录音</string>
+    <string name="stop">停止</string>
+    <string name="record">录音</string>
+    <string name="filter_by_emotion">按情绪筛选</string>
+    <string name="all">全部</string>
+    <string name="no_public_records">暂无公开记录</string>
+    <string name="be_first_to_share">成为第一个分享的人</string>
+</resources>

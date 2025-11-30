@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 SoulPickupAnimation 动画测试 - 宫崎骏赛博朋克风格</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #7DD3C0, #C084FC, #FB923C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .device-info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .device-text {
+            color: #374151;
+            font-size: 14px;
+            text-align: center;
+            margin: 5px 0;
+        }
+
+        .test-controls {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+
+        .control-text {
+            color: #6b7280;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .souls-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .soul-card {
+            border-radius: 16px;
+            padding: 25px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .soul-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .soul-card.active {
+            animation: pulse 1.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .gradient-peaceful {
+            background: linear-gradient(135deg, #7DD3C0, #C084FC);
+        }
+
+        .gradient-dreamy {
+            background: linear-gradient(135deg, #C084FC, #FB923C);
+        }
+
+        .gradient-warm {
+            background: linear-gradient(135deg, #FB923C, #FBBF24);
+        }
+
+        .gradient-hopeful {
+            background: linear-gradient(135deg, #FBBF24, #7DD3C0);
+        }
+
+        .gradient-melancholic {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+        }
+
+        .gradient-energetic {
+            background: linear-gradient(135deg, #FF0080, #00D9FF);
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .emotion-label {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .content-text {
+            font-size: 1em;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.5;
+            margin-bottom: 10px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .description-text {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .particle.active {
+            animation: particleFloat 2s ease-out forwards;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 1;
+                transform: scale(0) translate(0, 0);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1) translate(var(--dx), var(--dy));
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5) translate(var(--dx), var(--dy));
+            }
+        }
+
+        .results-section {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid #10b981;
+        }
+
+        .result-emotion {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .result-colors {
+            font-size: 0.9em;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .result-time {
+            font-size: 0.8em;
+            color: #9ca3af;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #9ca3af;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .color-palette {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .palette-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .color-row {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 10px;
+        }
+
+        .color-box {
+            padding: 8px 4px;
+            border-radius: 6px;
+            min-width: 60px;
+            text-align: center;
+            font-size: 0.7em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .reset-button {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background: #dc2626;
+        }
+
+        .performance-info {
+            background: #fef3c7;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+
+        .info-text {
+            font-size: 0.9em;
+            color: #78350f;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+            
+            .souls-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🎨 SoulPickupAnimation 动画测试</h1>
+            <p class="subtitle">宫崎骏美学 + 赛博朋克风格</p>
+            <div class="device-info">
+                <div class="device-text">📱 平台: Web 浏览器</div>
+                <div class="device-text">🎯 测试模式: 简化版动画效果</div>
+            </div>
+        </div>
+
+        <div class="test-controls">
+            <div class="control-title">🎮 测试说明</div>
+            <div class="control-text">• 点击任意卡片模拟灵魂拾取</div>
+            <div class="control-text">• 观察色彩渐变和动画效果</div>
+            <div class="control-text">• 验证不同情绪的色彩方案</div>
+            <div class="control-text">• 测试完成后查看结果统计</div>
+        </div>
+
+        <div class="souls-container" id="soulsContainer">
+            <!-- 灵魂卡片将通过JavaScript动态生成 -->
+        </div>
+
+        <div class="results-section">
+            <div class="results-title">📊 测试结果</div>
+            <div id="resultsContainer">
+                <div class="no-results">暂无测试结果，点击卡片开始测试</div>
+            </div>
+        </div>
+
+        <div class="performance-info">
+            <div class="info-title">⚡ 性能信息</div>
+            <div class="info-text">• 粒子数量: 12个 (优化版)</div>
+            <div class="info-text">• 动画时长: 2000ms</div>
+            <div class="info-text">• 色彩渐变: 2段式</div>
+            <div class="info-text">• 触摸响应: 即时</div>
+            <div class="info-text">• 内存优化: ✅ 已启用</div>
+        </div>
+
+        <div class="color-palette">
+            <div class="palette-title">🎨 宫崎骏+赛博朋克色彩方案</div>
+            <div class="color-row">
+                <div class="color-box" style="background: #7DD3C0;">#7DD3C0</div>
+                <div class="color-box" style="background: #C084FC;">#C084FC</div>
+                <div class="color-box" style="background: #FB923C;">#FB923C</div>
+                <div class="color-box" style="background: #FBBF24;">#FBBF24</div>
+            </div>
+            <div class="color-row">
+                <div class="color-box" style="background: #FF0080;">#FF0080</div>
+                <div class="color-box" style="background: #00D9FF;">#00D9FF</div>
+                <div class="color-box" style="background: #6366F1;">#6366F1</div>
+                <div class="color-box" style="background: #8B5CF6;">#8B5CF6</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 测试数据
+        const testSouls = [
+            {
+                id: 'peaceful',
+                content: '今天的天空特别蓝，让我想起了小时候的梦想...',
+                emotion: '平静',
+                colors: ['#7DD3C0', '#C084FC'],
+                description: '薄荷绿 → 薰衣草紫，营造宁静氛围'
+            },
+            {
+                id: 'dreamy',
+                content: '在这个喧嚣的世界里，找到属于自己的宁静...',
+                emotion: '梦幻',
+                colors: ['#C084FC', '#FB923C'],
+                description: '薰衣草紫 → 蜜桃橙，浪漫想象空间'
+            },
+            {
+                id: 'warm',
+                content: '温暖的阳光洒在肩上，感觉整个世界都温柔了...',
+                emotion: '温暖',
+                colors: ['#FB923C', '#FBBF24'],
+                description: '蜜桃橙 → 樱花黄，温馨舒适感受'
+            },
+            {
+                id: 'hopeful',
+                content: '每一个清晨都是新的开始，充满了无限可能...',
+                emotion: '希望',
+                colors: ['#FBBF24', '#7DD3C0'],
+                description: '樱花黄 → 薄荷绿，积极向上的力量'
+            },
+            {
+                id: 'melancholic',
+                content: '雨后的街道，总是让人想起那些未完成的约定...',
+                emotion: '忧郁',
+                colors: ['#6366F1', '#8B5CF6'],
+                description: '深蓝 → 电紫，深沉思考的氛围'
+            },
+            {
+                id: 'energetic',
+                content: '奔跑在城市的街头，感受生命的活力与激情...',
+                emotion: '活力',
+                colors: ['#FF0080', '#00D9FF'],
+                description: '霓虹粉 → 霓虹蓝，赛博朋克的热情'
+            }
+        ];
+
+        let testResults = [];
+        let isAnimating = false;
+
+        // 创建灵魂卡片
+        function createSoulCards() {
+            const container = document.getElementById('soulsContainer');
+            
+            testSouls.forEach(soul => {
+                const card = document.createElement('div');
+                card.className = `soul-card gradient-${soul.id}`;
+                card.innerHTML = `
+                    <div class="particles" id="particles-${soul.id}"></div>
+                    <div class="card-content">
+                        <div class="emotion-label">${soul.emotion}</div>
+                        <div class="content-text">${soul.content}</div>
+                        <div class="description-text">${soul.description}</div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => handleSoulClick(soul));
+                container.appendChild(card);
+            });
+        }
+
+        // 处理灵魂卡片点击
+        function handleSoulClick(soul) {
+            if (isAnimating) return;
+            
+            isAnimating = true;
+            const card = document.querySelector(`.gradient-${soul.id}`);
+            card.classList.add('active');
+            
+            // 创建粒子效果
+            createParticles(soul.id);
+            
+            // 播放音效（模拟）
+            playPickupSound();
+            
+            // 记录测试结果
+            setTimeout(() => {
+                const result = {
+                    emotion: soul.emotion,
+                    colors: soul.colors,
+                    timestamp: Date.now(),
+                    success: true
+                };
+                
+                testResults.push(result);
+                updateResults();
+                
+                // 重置状态
+                setTimeout(() => {
+                    card.classList.remove('active');
+                    isAnimating = false;
+                }, 1000);
+            }, 1500);
+        }
+
+        // 创建粒子效果
+        function createParticles(soulId) {
+            const particlesContainer = document.getElementById(`particles-${soulId}`);
+            const particleCount = 12;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // 随机位置和运动参数
+                const angle = (i / particleCount) * Math.PI * 2;
+                const distance = 50 + Math.random() * 50;
+                const dx = Math.cos(angle) * distance;
+                const dy = Math.sin(angle) * distance;
+                
+                // 设置初始位置（中心）
+                particle.style.left = '50%';
+                particle.style.top = '50%';
+                particle.style.setProperty('--dx', `${dx}px`);
+                particle.style.setProperty('--dy', `${dy}px`);
+                
+                particlesContainer.appendChild(particle);
+                
+                // 延迟启动动画
+                setTimeout(() => {
+                    particle.classList.add('active');
+                }, i * 50);
+                
+                // 清理粒子
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 2000);
+            }
+        }
+
+        // 模拟音效
+        function playPickupSound() {
+            // 创建简单的音频上下文来播放音效
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.3);
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            } catch (error) {
+                console.log('音效播放失败:', error);
+            }
+        }
+
+        // 更新测试结果
+        function updateResults() {
+            const container = document.getElementById('resultsContainer');
+            
+            if (testResults.length === 0) {
+                container.innerHTML = '<div class="no-results">暂无测试结果，点击卡片开始测试</div>';
+                return;
+            }
+            
+            const resultsHTML = testResults.map((result, index) => `
+                <div class="result-item">
+                    <div class="result-emotion">${result.emotion}</div>
+                    <div class="result-colors">${result.colors.join(' → ')}</div>
+                    <div class="result-time">${new Date(result.timestamp).toLocaleTimeString()}</div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size: 1.1em; color: #10b981; text-align: center; margin-bottom: 10px;">
+                        已测试 ${testResults.length} 个情绪类型
+                    </div>
+                    ${resultsHTML}
+                </div>
+                <button class="reset-button" onclick="resetTests()">🔄 重置测试</button>
+            `;
+        }
+
+        // 重置测试
+        function resetTests() {
+            testResults = [];
+            updateResults();
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            createSoulCards();
+            updateResults();
+            
+            // 添加欢迎提示
+            setTimeout(() => {
+                alert('🎉 欢迎来到 SoulPickupAnimation 测试！\n\n点击任意卡片测试宫崎骏+赛博朋克风格的动画效果。\n\n观察色彩渐变和粒子动画！✨');
+            }, 1000);
+        });
+
+        // 添加键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'r' || e.key === 'R') {
+                resetTests();
+            }
+        });
+    </script>
+</body>
+</html>

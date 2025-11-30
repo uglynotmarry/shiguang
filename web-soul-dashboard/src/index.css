@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+html, body, #root { height: 100%; }
+body { @apply bg-bg text-white; }
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+:root {
+  --ghibli-paper: rgba(255,255,255,0.08);
+  --ghibli-edge: rgba(255,255,255,0.20);
+  --ghibli-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+
+.ghibli-text { 
+  font-family: 'Ma Shan Zheng', 'Kalam', 'ZCOOL KuaiLe', system-ui, -apple-system, Segoe UI, Roboto, PingFang SC, Microsoft YaHei, sans-serif;
+  letter-spacing: 0.2px;
+  text-shadow: 0 1px 0 rgba(255,255,255,.08), 0 1px 3px rgba(0,0,0,.18);
+}
+
+.ghibli-paper {
+  background: var(--ghibli-paper);
+  box-shadow: var(--ghibli-shadow);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--ghibli-edge);
+}
+
+@keyframes waveBar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.85; }
+  100% { opacity: 1; }
+}
+
+.readable-pill {
+  background: transparent;
+  color: #E8E8E8;
+  font-size: 16px;
+  line-height: 1.5;
+  border-radius: 14px;
+  padding: 4px 10px;
+  transition: color 240ms ease, background-color 240ms ease, opacity 240ms ease;
+}
+
+.readable-contrast {
+  color: #E8E8E8;
+  -webkit-text-stroke: 0.5px rgba(0,0,0,0.45);
+  text-shadow: 0 0 2px rgba(0,0,0,0.55), 0 1px 3px rgba(0,0,0,0.5);
+}
+
+/* removed ghibli image overlays to restore previous design */
+
+.center-verify { position: relative; }
+.center-verify::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255,255,255,0.15);
+  transform: translateX(-0.5px);
+  pointer-events: none;
+}
+.center-verify::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255,255,255,0.15);
+  transform: translateY(-0.5px);
+  pointer-events: none;
+}

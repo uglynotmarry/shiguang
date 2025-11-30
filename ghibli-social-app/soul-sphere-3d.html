@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D灵魂星球 - 类似SOUL App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            overflow: hidden;
+            color: white;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b9d, #c44569, #f8b500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #87ceeb;
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 10px;
+            border-radius: 15px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-item.center {
+            background: linear-gradient(45deg, #ff6b9d, #c44569);
+            border-radius: 50%;
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(255, 107, 157, 0.5);
+        }
+
+        .nav-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .nav-text {
+            font-size: 0.8rem;
+            color: #cccccc;
+        }
+
+        .nav-item.center .nav-text {
+            color: white;
+            font-weight: bold;
+        }
+
+        .soul-pickup-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .soul-pickup-modal.active {
+            display: flex;
+        }
+
+        .soul-content {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            margin: 20px;
+            position: relative;
+            animation: soulFloat 3s ease-in-out infinite;
+        }
+
+        .soul-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: soulPulse 2s ease-in-out infinite;
+        }
+
+        .soul-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff6b9d, #c44569, #f8b500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .soul-author {
+            color: #87ceeb;
+            font-size: 1rem;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        .soul-close {
+            background: linear-gradient(45deg, #9D4EDD, #c44569);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(157, 78, 221, 0.4);
+        }
+
+        .soul-close:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(157, 78, 221, 0.6);
+        }
+
+        @keyframes soulFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes soulPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: #87ceeb;
+            z-index: 200;
+        }
+
+        @media (max-width: 768px) {
+            .title { font-size: 2rem; }
+            .subtitle { font-size: 1rem; }
+            .nav-icon { font-size: 1.2rem; }
+            .nav-text { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">正在加载3D星球...</div>
+    
+    <div class="header">
+        <h1 class="title">✨ 灵魂星球 ✨</h1>
+        <p class="subtitle">转动星球，发现隐藏在宇宙中的灵魂</p>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div class="bottom-nav">
+        <div class="nav-container">
+            <div class="nav-item" onclick="showMessage('星球视图')">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-text">星球</div>
+            </div>
+            <div class="nav-item" onclick="showMessage('灵魂拾取')">
+                <div class="nav-icon">💫</div>
+                <div class="nav-text">拾取</div>
+            </div>
+            <div class="nav-item center" onclick="showMessage('发布灵魂')">
+                <div class="nav-icon">✨</div>
+            </div>
+            <div class="nav-item" onclick="showMessage('时空邮局')">
+                <div class="nav-icon">💌</div>
+                <div class="nav-text">邮局</div>
+            </div>
+            <div class="nav-item" onclick="showMessage('个人中心')">
+                <div class="nav-icon">👤</div>
+                <div class="nav-text">我的</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="soul-pickup-modal" id="soulModal">
+        <div class="soul-content">
+            <div class="soul-icon" id="soulIcon">💫</div>
+            <div class="soul-text" id="soulText"></div>
+            <div class="soul-author" id="soulAuthor"></div>
+            <button class="soul-close" onclick="closeSoulModal()">释放灵魂 ✨</button>
+        </div>
+    </div>
+
+    <script>
+        // 灵魂数据
+        const soulContents = [
+            {
+                id: '1',
+                content: '今天的天空特别蓝，想起了小时候在龙猫树下玩耍的时光...',
+                emotion: 'warm',
+                type: 'text',
+                author: '梦幻少女'
+            },
+            {
+                id: '2',
+                content: '在这个霓虹闪烁的城市里，我听到了来自未来的呼唤...',
+                emotion: 'mysterious',
+                type: 'voice',
+                author: '赛博旅人'
+            },
+            {
+                id: '3',
+                content: '樱花飘落的瞬间，时间仿佛静止了，这一刻只属于我们...',
+                emotion: 'romantic',
+                type: 'text',
+                author: '樱花信使'
+            },
+            {
+                id: '4',
+                content: '在梦境与现实的交界处，我找到了属于自己的魔法世界...',
+                emotion: 'dreamy',
+                type: 'voice',
+                author: '梦境编织者'
+            },
+            {
+                id: '5',
+                content: '一个人的夜晚，星星也在诉说着孤独的故事...',
+                emotion: 'lonely',
+                type: 'text',
+                author: '星空守望者'
+            },
+            {
+                id: '6',
+                content: '风吹过麦田的声音，是大自然最温柔的安慰...',
+                emotion: 'warm',
+                type: 'voice',
+                author: '麦田守望者'
+            },
+            {
+                id: '7',
+                content: '在月光下许愿，希望能找到属于自己的那颗星...',
+                emotion: 'dreamy',
+                type: 'text',
+                author: '月光信使'
+            },
+            {
+                id: '8',
+                content: '城市的霓虹灯下，藏着无数个孤独的灵魂...',
+                emotion: 'lonely',
+                type: 'voice',
+                author: '夜行者'
+            }
+        ];
+
+        const emotionColors = {
+            romantic: '#FF6B9D',
+            mysterious: '#9D4EDD',
+            dreamy: '#87CEEB',
+            warm: '#FFB347',
+            lonely: '#708090'
+        };
+
+        let scene, camera, renderer, globe, particles, soulObjects = [];
+        let mouseX = 0, mouseY = 0;
+        let targetRotationX = 0, targetRotationY = 0;
+
+        function init() {
+            // 创建场景
+            scene = new THREE.Scene();
+            
+            // 创建相机
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 8;
+            
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // 添加环境光
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+            scene.add(ambientLight);
+            
+            // 添加点光源
+            const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+            
+            const pointLight2 = new THREE.PointLight(0x9D4EDD, 0.5, 100);
+            pointLight2.position.set(-10, -10, -10);
+            scene.add(pointLight2);
+            
+            // 创建地球
+            createGlobe();
+            
+            // 创建粒子系统
+            createParticles();
+            
+            // 创建灵魂内容
+            createSoulContents();
+            
+            // 添加鼠标控制
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('click', onMouseClick);
+            
+            // 隐藏加载提示
+            document.getElementById('loading').style.display = 'none';
+            
+            // 开始动画循环
+            animate();
+        }
+
+        function createGlobe() {
+            const geometry = new THREE.SphereGeometry(3, 64, 64);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x2C3E50,
+                transparent: true,
+                opacity: 0.8,
+                wireframe: false
+            });
+            
+            globe = new THREE.Mesh(geometry, material);
+            scene.add(globe);
+        }
+
+        function createParticles() {
+            const particleCount = 1000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 50;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 50;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 50;
+                
+                colors[i * 3] = Math.random();
+                colors[i * 3 + 1] = Math.random();
+                colors[i * 3 + 2] = Math.random();
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 0.05,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6
+            });
+            
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+        }
+
+        function createSoulContents() {
+            soulContents.forEach((soul, index) => {
+                // 计算球面坐标
+                const phi = Math.acos(-1 + (2 * index) / soulContents.length);
+                const theta = Math.sqrt(soulContents.length * Math.PI) * phi;
+                
+                const radius = 4.5;
+                const x = radius * Math.cos(theta) * Math.sin(phi);
+                const y = radius * Math.cos(phi);
+                const z = radius * Math.sin(theta) * Math.sin(phi);
+                
+                // 创建灵魂球体
+                const geometry = new THREE.SphereGeometry(0.2, 16, 16);
+                const material = new THREE.MeshPhongMaterial({
+                    color: emotionColors[soul.emotion],
+                    emissive: emotionColors[soul.emotion],
+                    emissiveIntensity: 0.3,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                
+                const soulSphere = new THREE.Mesh(geometry, material);
+                soulSphere.position.set(x, y, z);
+                soulSphere.userData = soul;
+                
+                // 添加发光效果
+                const glowGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+                const glowMaterial = new THREE.MeshBasicMaterial({
+                    color: emotionColors[soul.emotion],
+                    transparent: true,
+                    opacity: 0.2
+                });
+                const glowSphere = new THREE.Mesh(glowGeometry, glowMaterial);
+                glowSphere.position.copy(soulSphere.position);
+                
+                scene.add(soulSphere);
+                scene.add(glowSphere);
+                
+                soulObjects.push({ sphere: soulSphere, glow: glowSphere, data: soul });
+            });
+        }
+
+        function onMouseMove(event) {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            targetRotationY = mouseX * 0.5;
+            targetRotationX = mouseY * 0.3;
+        }
+
+        function onMouseClick(event) {
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            
+            const soulSpheres = soulObjects.map(obj => obj.sphere);
+            const intersects = raycaster.intersectObjects(soulSpheres);
+            
+            if (intersects.length > 0) {
+                const selectedSoul = intersects[0].object.userData;
+                showSoulPickup(selectedSoul);
+            }
+        }
+
+        function showSoulPickup(soul) {
+            const modal = document.getElementById('soulModal');
+            const icon = document.getElementById('soulIcon');
+            const text = document.getElementById('soulText');
+            const author = document.getElementById('soulAuthor');
+            
+            icon.textContent = soul.type === 'voice' ? '🎤' : '💫';
+            text.textContent = soul.content;
+            author.textContent = `— ${soul.author}`;
+            
+            modal.classList.add('active');
+        }
+
+        function closeSoulModal() {
+            document.getElementById('soulModal').classList.remove('active');
+        }
+
+        function showMessage(message) {
+            // 简单的消息提示
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.9);
+                color: #87ceeb;
+                padding: 20px 30px;
+                border-radius: 15px;
+                font-size: 1.2rem;
+                z-index: 1001;
+                border: 2px solid #87ceeb;
+            `;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 2000);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // 旋转地球
+            if (globe) {
+                globe.rotation.y += 0.005;
+                globe.rotation.x = Math.sin(Date.now() * 0.001) * 0.1;
+            }
+            
+            // 鼠标交互旋转
+            if (globe && particles) {
+                globe.rotation.y += (targetRotationY - globe.rotation.y) * 0.05;
+                globe.rotation.x += (targetRotationX - globe.rotation.x) * 0.05;
+                particles.rotation.y += 0.001;
+            }
+            
+            // 灵魂球体动画
+            soulObjects.forEach((obj, index) => {
+                const time = Date.now() * 0.001;
+                obj.sphere.position.y += Math.sin(time + index) * 0.01;
+                obj.glow.scale.setScalar(1 + Math.sin(time * 2 + index) * 0.2);
+            });
+            
+            renderer.render(scene, camera);
+        }
+
+        // 窗口大小调整
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 初始化
+        init();
+    </script>
+</body>
+</html>

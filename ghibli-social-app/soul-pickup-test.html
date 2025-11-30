@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>灵魂拾取动画测试 - Web版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b9d, #c44569, #f8b500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #87ceeb;
+            margin-bottom: 40px;
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .soul-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .soul-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .soul-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .soul-card:hover::before {
+            left: 100%;
+        }
+
+        .card-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-author {
+            text-align: right;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            font-style: italic;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-type {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        .emotion-tag {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .romantic { background: linear-gradient(45deg, #ff6b9d, #c44569); }
+        .mysterious { background: linear-gradient(45deg, #2c003e, #4a148c); }
+        .dreamy { background: linear-gradient(45deg, #87ceeb, #4682b4); }
+        .warm { background: linear-gradient(45deg, #ffb347, #ffa500); }
+        .lonely { background: linear-gradient(45deg, #708090, #2f4f4f); }
+
+        .animation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .animation-overlay.active {
+            display: flex;
+        }
+
+        .animation-content {
+            position: relative;
+            text-align: center;
+            animation: soulPickup 3s ease-in-out;
+        }
+
+        .soul-text {
+            background: linear-gradient(45deg, #ff6b9d, #c44569, #f8b500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            max-width: 400px;
+            line-height: 1.4;
+            animation: textGlow 2s ease-in-out infinite alternate;
+        }
+
+        .soul-author {
+            color: #87ceeb;
+            font-size: 1.1rem;
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: particleFloat 3s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .result-message {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #7dd3c0;
+            padding: 20px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            text-align: center;
+            z-index: 1001;
+            border: 2px solid #7dd3c0;
+            box-shadow: 0 0 20px rgba(125, 211, 192, 0.5);
+            animation: resultSlide 0.5s ease-out;
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            line-height: 1.6;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .instructions h3 {
+            color: #87ceeb;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        @keyframes soulPickup {
+            0% {
+                transform: scale(0.3) translateY(50px);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1) translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes textGlow {
+            0% {
+                text-shadow: 0 0 10px rgba(255, 107, 157, 0.5);
+            }
+            100% {
+                text-shadow: 0 0 30px rgba(255, 107, 157, 1), 0 0 60px rgba(255, 107, 157, 0.8);
+            }
+        }
+
+        @keyframes particleFloat {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(-30px) scale(1.5);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes resultSlide {
+            0% {
+                transform: translateX(-50%) translateY(100px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .soul-text {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🌸 灵魂拾取动画测试 🌸</h1>
+        <p class="subtitle">点击卡片体验灵魂拾取的魔法效果</p>
+        
+        <div class="test-grid" id="testGrid">
+            <!-- Test cards will be generated here -->
+        </div>
+
+        <div class="instructions">
+            <h3>💡 使用说明</h3>
+            <p>✨ 点击任意卡片开始测试灵魂拾取动画<br>
+               🌟 每个卡片代表不同的情感和类型<br>
+               🎭 观察粒子效果、发光效果和渐变动画<br>
+               💫 体验吉卜力美学与赛博朋克的完美融合</p>
+        </div>
+    </div>
+
+    <div class="animation-overlay" id="animationOverlay">
+        <div class="animation-content" id="animationContent">
+            <div class="particles" id="particles"></div>
+            <div class="soul-text" id="soulText"></div>
+            <div class="soul-author" id="soulAuthor"></div>
+        </div>
+    </div>
+
+    <script>
+        const testSoulContents = [
+            {
+                id: '1',
+                content: '今天的天空特别蓝，想起了小时候在龙猫树下玩耍的时光...',
+                emotion: 'warm',
+                type: 'text',
+                author: '梦幻少女'
+            },
+            {
+                id: '2',
+                content: '在这个霓虹闪烁的城市里，我听到了来自未来的呼唤...',
+                emotion: 'mysterious',
+                type: 'voice',
+                author: '赛博旅人'
+            },
+            {
+                id: '3',
+                content: '樱花飘落的瞬间，时间仿佛静止了，这一刻只属于我们...',
+                emotion: 'romantic',
+                type: 'text',
+                author: '樱花信使'
+            },
+            {
+                id: '4',
+                content: '在梦境与现实的交界处，我找到了属于自己的魔法世界...',
+                emotion: 'dreamy',
+                type: 'voice',
+                author: '梦境编织者'
+            },
+            {
+                id: '5',
+                content: '一个人的夜晚，星星也在诉说着孤独的故事...',
+                emotion: 'lonely',
+                type: 'text',
+                author: '星空守望者'
+            }
+        ];
+
+        const emotionColors = {
+            romantic: 'linear-gradient(45deg, #ff6b9d, #c44569)',
+            mysterious: 'linear-gradient(45deg, #2c003e, #4a148c)',
+            dreamy: 'linear-gradient(45deg, #87ceeb, #4682b4)',
+            warm: 'linear-gradient(45deg, #ffb347, #ffa500)',
+            lonely: 'linear-gradient(45deg, #708090, #2f4f4f)'
+        };
+
+        const emotionChinese = {
+            romantic: '浪漫',
+            mysterious: '神秘',
+            dreamy: '梦幻',
+            warm: '温暖',
+            lonely: '孤独'
+        };
+
+        function createTestCards() {
+            const testGrid = document.getElementById('testGrid');
+            
+            testSoulContents.forEach(soul => {
+                const card = document.createElement('div');
+                card.className = 'soul-card';
+                card.style.background = emotionColors[soul.emotion];
+                
+                card.innerHTML = `
+                    <div class="card-content">${soul.content}</div>
+                    <div class="card-author">— ${soul.author}</div>
+                    <div class="card-type">${soul.type === 'voice' ? '🎤 语音' : '📝 文字'}</div>
+                    <span class="emotion-tag ${soul.emotion}">${emotionChinese[soul.emotion]}</span>
+                `;
+                
+                card.addEventListener('click', () => startSoulPickupAnimation(soul));
+                
+                testGrid.appendChild(card);
+            });
+        }
+
+        function startSoulPickupAnimation(soul) {
+            const overlay = document.getElementById('animationOverlay');
+            const content = document.getElementById('animationContent');
+            const soulText = document.getElementById('soulText');
+            const soulAuthor = document.getElementById('soulAuthor');
+            const particles = document.getElementById('particles');
+
+            // Set content
+            soulText.textContent = soul.content;
+            soulAuthor.textContent = `— ${soul.author}`;
+            
+            // Create particles
+            particles.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                particles.appendChild(particle);
+            }
+
+            // Show animation
+            overlay.classList.add('active');
+            
+            // Show result message
+            showResultMessage(`✨ 灵魂拾取成功！感受到了${emotionChinese[soul.emotion]}的情感`);
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                overlay.classList.remove('active');
+            }, 3000);
+        }
+
+        function showResultMessage(message) {
+            // Remove existing result message
+            const existingResult = document.querySelector('.result-message');
+            if (existingResult) {
+                existingResult.remove();
+            }
+
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'result-message';
+            resultDiv.textContent = message;
+            document.body.appendChild(resultDiv);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                if (resultDiv.parentNode) {
+                    resultDiv.remove();
+                }
+            }, 3000);
+        }
+
+        // Initialize the test
+        createTestCards();
+
+        // Add some interactive background effects
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            document.body.style.background = `
+                radial-gradient(circle at ${x * 100}% ${y * 100}%, 
+                rgba(255, 107, 157, 0.1) 0%, 
+                transparent 50%), 
+                linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)
+            `;
+        });
+    </script>
+</body>
+</html>

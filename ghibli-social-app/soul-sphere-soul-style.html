@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOUL App风格3D灵魂星球</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f23 50%, #000000 100%);
+            overflow: hidden;
+            color: white;
+            height: 100vh;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 15px 20px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 10px 15px;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .nav-item.center {
+            background: linear-gradient(45deg, #ff6b9d, #c44569);
+            border-radius: 50%;
+            padding: 20px;
+            margin-top: -20px;
+            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        .nav-item.center:hover {
+            transform: translateY(-5px) scale(1.1);
+        }
+
+        .nav-icon {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .nav-text {
+            font-size: 0.7rem;
+            color: #cccccc;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item.center .nav-text {
+            color: white;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 10px 30px rgba(255, 107, 157, 0.5); }
+            50% { box-shadow: 0 10px 40px rgba(255, 107, 157, 0.8); }
+        }
+
+        .user-bubble {
+            position: absolute;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .user-bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+        }
+
+        .user-bubble.online {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .user-bubble.matched {
+            border-color: #ff6b9d;
+            box-shadow: 0 4px 15px rgba(255, 107, 157, 0.4);
+        }
+
+        .badge {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: #87ceeb;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .loading::after {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 3px solid rgba(135, 206, 235, 0.3);
+            border-top: 3px solid #87ceeb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .soul-pickup-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(15px);
+        }
+
+        .soul-pickup-modal.active {
+            display: flex;
+        }
+
+        .soul-content {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            margin: 20px;
+            position: relative;
+            animation: soulFloat 3s ease-in-out infinite;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .soul-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: soulPulse 2s ease-in-out infinite;
+            filter: drop-shadow(0 4px 15px rgba(255, 255, 255, 0.3));
+        }
+
+        .soul-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff6b9d, #c44569, #f8b500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 500;
+        }
+
+        .soul-author {
+            color: #87ceeb;
+            font-size: 1rem;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        .soul-close {
+            background: linear-gradient(45deg, #9D4EDD, #c44569);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(157, 78, 221, 0.4);
+            font-weight: 500;
+        }
+
+        .soul-close:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(157, 78, 221, 0.6);
+        }
+
+        @keyframes soulFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes soulPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 12px 15px;
+            }
+            
+            .nav-item {
+                padding: 8px 10px;
+            }
+            
+            .nav-icon {
+                font-size: 1.4rem;
+            }
+            
+            .nav-text {
+                font-size: 0.6rem;
+            }
+            
+            .user-bubble {
+                font-size: 0.7rem;
+                padding: 6px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">正在加载灵魂星球...</div>
+    
+    <div id="canvas-container"></div>
+
+    <div class="bottom-nav">
+        <div class="nav-container">
+            <div class="nav-item" onclick="showMessage('星球')">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-text">星球</div>
+            </div>
+            <div class="nav-item" onclick="showMessage('灵魂匹配')">
+                <div class="nav-icon">💫</div>
+                <div class="nav-text">匹配</div>
+            </div>
+            <div class="nav-item center" onclick="showMessage('发布灵魂')">
+                <div class="nav-icon">✨</div>
+            </div>
+            <div class="nav-item" onclick="showMessage('时空邮局')">
+                <div class="nav-icon">💌</div>
+                <div class="nav-text">邮局</div>
+            </div>
+            <div class="nav-item" onclick="showMessage('个人中心')">
+                <div class="nav-icon">👤</div>
+                <div class="nav-text">我的</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="soul-pickup-modal" id="soulModal">
+        <div class="soul-content">
+            <div class="soul-icon" id="soulIcon">💫</div>
+            <div class="soul-text" id="soulText"></div>
+            <div class="soul-author" id="soulAuthor"></div>
+            <button class="soul-close" onclick="closeSoulModal()">释放灵魂 ✨</button>
+        </div>
+    </div>
+
+    <script>
+        // SOUL App风格用户数据
+        const soulUsers = [
+            { name: 'Fairy', emoji: '', status: 'online', matched: false, content: '今天也是元气满满的一天呢~', color: '#FFB347' },
+            { name: '隔壁老六', emoji: '👻', status: 'online', matched: true, content: '神秘的我出现了', color: '#9D4EDD' },
+            { name: '苏苏', emoji: '', status: 'recent', matched: false, content: '温柔的小姐姐在这里', color: '#FF6B9D' },
+            { name: '王可可', emoji: '', status: 'online', matched: false, content: '声音达人就是我啦', color: '#87CEEB', badge: '声音达人' },
+            { name: '北北', emoji: '', status: 'online', matched: true, content: '超匹配的灵魂在这里', color: '#C44569', badge: '超匹配' },
+            { name: '枫洛', emoji: '', status: 'recent', matched: false, content: '让你飞起来的感觉', color: '#708090' },
+            { name: '让你飞', emoji: '', status: 'online', matched: false, content: '带你飞向梦想的天空', color: '#4682B4' },
+            { name: '尽所能，敬所…', emoji: '', status: 'recent', matched: false, content: '尽力而为，顺其自然', color: '#2C3E50' },
+            { name: '法海', emoji: '', status: 'online', matched: true, content: '不懂爱的法海', color: '#B400FF' },
+            { name: '方格', emoji: '', status: 'recent', matched: false, content: '规规矩矩的生活', color: '#34495E' },
+            { name: '咚咚喝水', emoji: '', status: 'online', matched: false, content: '健康生活的倡导者', color: '#3498DB' },
+            { name: '我是你的宝贝', emoji: '', status: 'recent', matched: false, content: '需要被宠爱的小宝贝', color: '#FF6B9D' },
+            { name: '愿得一人心', emoji: '', status: 'online', matched: true, content: '寻找那个对的人', color: '#E74C3C' },
+            { name: '温柔的大发明', emoji: '', status: 'recent', matched: false, content: '创意无限的发明家', color: '#F39C12' },
+            { name: 'Ethan', emoji: '', status: 'online', matched: false, content: '国际友人Ethan', color: '#9B59B6' },
+            { name: '笑笑就好~', emoji: '', status: 'recent', matched: false, content: '笑对人生的一切', color: '#1ABC9C' },
+            { name: '小羊星冰乐', emoji: '', status: 'online', matched: true, content: '可爱的小羊咩咩', color: '#FF6B9D' },
+            { name: '喷喷', emoji: '', status: 'recent', matched: false, content: '活力四射的喷喷', color: '#E67E22' },
+            { name: '男人的王道', emoji: '', status: 'online', matched: false, content: 'man的哲学思考', color: '#34495E' },
+            { name: '白榆', emoji: '', status: 'recent', matched: false, content: '洁白如榆的心灵', color: '#ECF0F1' },
+            { name: 'y.', emoji: 'y.', status: 'online', matched: true, content: '简约而不简单的我', color: '#95A5A6' },
+            { name: 'J 跟班...', emoji: '', status: 'recent', matched: false, content: '忠诚的跟班J', color: '#D35400' },
+            { name: 'Grace', emoji: '', status: 'online', matched: false, content: '优雅的Grace', color: '#8E44AD' },
+            { name: '清林柚?', emoji: '', status: 'recent', matched: false, content: '清新如柚的感觉', color: '#27AE60' },
+            { name: 'AioSa', emoji: '', status: 'online', matched: true, content: '不变的初心', color: '#C0392B', badge: '不变' },
+            { name: 'Rachel', emoji: '', status: 'recent', matched: false, content: '同天生日的Rachel', color: '#FF6B9D', badge: '同天生日' },
+            { name: 'C鱼鱼?', emoji: '', status: 'online', matched: false, content: '游泳健将C鱼鱼', color: '#00D9FF' },
+            { name: 'Y头', emoji: '', status: 'recent', matched: false, content: '一口一头Y头', color: '#FF0080' },
+            { name: 'Mar', emoji: '', status: 'online', matched: true, content: '海洋之心Mar', color: '#0077BE' },
+            { name: '尤华', emoji: '', status: 'recent', matched: false, content: '华丽的尤华', color: '#B400FF' },
+            { name: '小呆', emoji: '', status: 'online', matched: false, content: '呆萌的小呆', color: '#708090' },
+            { name: '焱焱', emoji: '', status: 'recent', matched: false, content: '热情如火的焱焱', color: '#FF4500' },
+            { name: '怨怨酱', emoji: '', status: 'online', matched: true, content: '有点小怨念的酱', color: '#8B4513' },
+            { name: '小圆大王 ovo', emoji: '', status: 'recent', matched: false, content: '圆圆的小圆大王', color: '#FF6B9D' },
+            { name: 'charles', emoji: '', status: 'online', matched: false, content: '绅士charles', color: '#2F4F4F' },
+            { name: 'Mmmmm', emoji: '', status: 'recent', matched: true, content: '我想静静的Mmmmm', color: '#696969', badge: '我想静静' },
+            { name: '不同8+1?', emoji: '', status: 'online', matched: false, content: '与众不同的我', color: '#A0522D' },
+            { name: '安娜', emoji: '', status: 'recent', matched: false, content: '啵啵喵喵的安娜', color: '#DDA0DD' },
+            { name: 'y?', emoji: 'y?', status: 'online', matched: false, content: '疑问多多的y', color: '#F0E68C' }
+        ];
+
+        let scene, camera, renderer, particles, userBubbles = [];
+        let mouseX = 0, mouseY = 0;
+        let targetRotationX = 0, targetRotationY = 0;
+        let isDragging = false;
+        let previousMouseX = 0, previousMouseY = 0;
+
+        function init() {
+            // 创建场景
+            scene = new THREE.Scene();
+            
+            // 创建相机
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 15;
+            
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            
+            // 添加环境光
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
+            
+            // 添加点光源
+            const pointLight = new THREE.PointLight(0xffffff, 1.5, 100);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+            
+            const pointLight2 = new THREE.PointLight(0xff6b9d, 0.8, 100);
+            pointLight2.position.set(-10, -10, -10);
+            scene.add(pointLight2);
+            
+            // 创建粒子背景
+            createParticleBackground();
+            
+            // 创建用户气泡
+            createUserBubbles();
+            
+            // 添加鼠标事件
+            addMouseEvents();
+            
+            // 隐藏加载提示
+            document.getElementById('loading').style.display = 'none';
+            
+            // 开始动画循环
+            animate();
+        }
+
+        function createParticleBackground() {
+            const particleCount = 2000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount; i++) {
+                // 创建球形分布的粒子
+                const radius = Math.random() * 50 + 20;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                
+                positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = radius * Math.cos(phi);
+                
+                // 随机颜色
+                const color = new THREE.Color();
+                color.setHSL(Math.random(), 0.7, 0.5);
+                colors[i * 3] = color.r;
+                colors[i * 3 + 1] = color.g;
+                colors[i * 3 + 2] = color.b;
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 0.1,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6,
+                sizeAttenuation: true
+            });
+            
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+        }
+
+        function createUserBubbles() {
+            soulUsers.forEach((user, index) => {
+                // 创建3D文字精灵
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 256;
+                canvas.height = 128;
+                
+                // 绘制背景
+                context.fillStyle = user.color + '80';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 绘制文字
+                context.fillStyle = 'white';
+                context.font = 'bold 24px Arial';
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                
+                let text = user.name;
+                if (user.emoji && user.emoji !== user.name) {
+                    text = user.emoji + ' ' + user.name;
+                }
+                
+                // 如果文字太长，进行换行处理
+                if (text.length > 10) {
+                    const parts = text.split(' ');
+                    if (parts.length > 1) {
+                        context.fillText(parts[0], canvas.width / 2, canvas.height / 2 - 15);
+                        context.fillText(parts.slice(1).join(' '), canvas.width / 2, canvas.height / 2 + 15);
+                    } else {
+                        context.font = 'bold 18px Arial';
+                        context.fillText(text, canvas.width / 2, canvas.height / 2);
+                    }
+                } else {
+                    context.fillText(text, canvas.width / 2, canvas.height / 2);
+                }
+                
+                // 绘制徽章
+                if (user.badge) {
+                    context.fillStyle = user.status === 'online' ? '#4CAF50' : '#FF9800';
+                    context.fillRect(canvas.width - 80, 10, 70, 20);
+                    context.fillStyle = 'white';
+                    context.font = 'bold 12px Arial';
+                    context.fillText(user.badge, canvas.width - 45, 20);
+                }
+                
+                // 创建纹理
+                const texture = new THREE.Texture(canvas);
+                texture.needsUpdate = true;
+                
+                // 创建材质
+                const material = new THREE.SpriteMaterial({ 
+                    map: texture,
+                    transparent: true,
+                    alphaTest: 0.1
+                });
+                
+                // 创建精灵
+                const sprite = new THREE.Sprite(material);
+                
+                // 随机位置（球形分布）
+                const radius = Math.random() * 15 + 8;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+                
+                sprite.position.x = radius * Math.sin(phi) * Math.cos(theta);
+                sprite.position.y = radius * Math.sin(phi) * Math.sin(theta);
+                sprite.position.z = radius * Math.cos(phi);
+                
+                // 设置大小
+                const scale = Math.random() * 0.8 + 0.6;
+                sprite.scale.set(scale * 3, scale * 1.5, 1);
+                
+                // 存储用户数据
+                sprite.userData = user;
+                
+                scene.add(sprite);
+                userBubbles.push(sprite);
+            });
+        }
+
+        function addMouseEvents() {
+            let isMouseDown = false;
+            let mouseX = 0, mouseY = 0;
+            
+            document.addEventListener('mousedown', (event) => {
+                isMouseDown = true;
+                mouseX = event.clientX;
+                mouseY = event.clientY;
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isMouseDown = false;
+            });
+            
+            document.addEventListener('mousemove', (event) => {
+                if (isMouseDown) {
+                    const deltaX = event.clientX - mouseX;
+                    const deltaY = event.clientY - mouseY;
+                    
+                    targetRotationY += deltaX * 0.01;
+                    targetRotationX += deltaY * 0.01;
+                    
+                    mouseX = event.clientX;
+                    mouseY = event.clientY;
+                }
+            });
+            
+            document.addEventListener('click', (event) => {
+                if (!isMouseDown) {
+                    // 检测点击的用户
+                    const raycaster = new THREE.Raycaster();
+                    const mouse = new THREE.Vector2();
+                    
+                    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                    
+                    raycaster.setFromCamera(mouse, camera);
+                    
+                    const intersects = raycaster.intersectObjects(userBubbles);
+                    
+                    if (intersects.length > 0) {
+                        const selectedUser = intersects[0].object.userData;
+                        showSoulPickup(selectedUser);
+                    }
+                }
+            });
+            
+            document.addEventListener('wheel', (event) => {
+                camera.position.z += event.deltaY * 0.01;
+                camera.position.z = Math.max(5, Math.min(30, camera.position.z));
+            });
+        }
+
+        function showSoulPickup(user) {
+            const modal = document.getElementById('soulModal');
+            const icon = document.getElementById('soulIcon');
+            const text = document.getElementById('soulText');
+            const author = document.getElementById('soulAuthor');
+            
+            icon.textContent = user.status === 'online' ? '💫' : '🌙';
+            text.textContent = user.content;
+            author.textContent = `— ${user.name}`;
+            
+            modal.classList.add('active');
+        }
+
+        function closeSoulModal() {
+            document.getElementById('soulModal').classList.remove('active');
+        }
+
+        function showMessage(message) {
+            // 简单的消息提示
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.9);
+                color: #87ceeb;
+                padding: 20px 30px;
+                border-radius: 15px;
+                font-size: 1.2rem;
+                z-index: 1001;
+                border: 2px solid #87ceeb;
+                backdrop-filter: blur(10px);
+            `;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 2000);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // 旋转整个场景
+            if (particles) {
+                particles.rotation.y += 0.001;
+                particles.rotation.x += 0.0005;
+            }
+            
+            // 鼠标交互旋转
+            if (userBubbles.length > 0) {
+                userBubbles.forEach(bubble => {
+                    const pos = bubble.position.clone();
+                    pos.applyAxisAngle(new THREE.Vector3(0, 1, 0), targetRotationY * 0.01);
+                    pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), targetRotationX * 0.01);
+                    bubble.position.copy(pos);
+                });
+            }
+            
+            // 用户气泡动画
+            userBubbles.forEach((bubble, index) => {
+                const time = Date.now() * 0.001;
+                bubble.position.y += Math.sin(time + index * 0.5) * 0.01;
+                
+                // 轻微的旋转
+                bubble.rotation.z = Math.sin(time + index) * 0.1;
+            });
+            
+            renderer.render(scene, camera);
+        }
+
+        // 窗口大小调整
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 初始化
+        init();
+    </script>
+</body>
+</html>

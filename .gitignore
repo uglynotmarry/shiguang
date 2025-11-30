@@ -1,0 +1,33 @@
+/.backup/
+.artifact/
+.staging/
+
+# Dependencies
+**/node_modules/
+
+# Build outputs
+**/dist/
+**/build/
+**/outputs/
+**/intermediates/
+
+# IDE & tooling
+**/.gradle/
+**/.idea/
+.vscode/
+
+# Logs
+*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# Env files
+.env*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project-specific
+web-soul-dashboard/dist/
